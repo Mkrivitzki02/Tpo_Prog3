@@ -133,7 +133,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
     }
 
     private boolean turnoMaquina(int tipoMaquina, List<Personaje> candidatosHumano, List<String> historialPreguntasHumanas) {
-        String preguntaElegida = elegirPreguntaMaquina(tipoMaquina, historialPreguntasHumanas);
+        String preguntaElegida = elegirPreguntaMaquina(tipoMaquina, candidatosHumano, historialPreguntasHumanas);
         historialPreguntasHumanas.add(preguntaElegida);
 
         if (tipoMaquina == 1) {
@@ -159,7 +159,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         return false;
     }
 
-    private String elegirPreguntaMaquina(int tipoMaquina, List<String> historialPreguntasHumanas) {
+    private String elegirPreguntaMaquina(int tipoMaquina, List<Personaje> candidatos, List<String> historialPreguntas) {
         List<String> opciones = new ArrayList<>();
         opciones.add("GENERO=FEMENINO");
         opciones.add("GENERO=MASCULINO");
@@ -173,7 +173,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
 
         List<String> disponibles = new ArrayList<>();
         for (String opcion : opciones) {
-            if (!historialPreguntasHumanas.contains(opcion)) {
+            if (!historialPreguntas.contains(opcion)) {
                 disponibles.add(opcion);
             }
         }
@@ -182,7 +182,57 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
             return opciones.get(random.nextInt(opciones.size()));
         }
 
-        return disponibles.get(random.nextInt(disponibles.size()));
+        return elegirPreguntaGreedy(disponibles, candidatos);
+    }
+
+    private String elegirPreguntaGreedy(List<String> preguntas, List<Personaje> candidatos) {
+        String mejorPregunta = preguntas.get(0);
+        int mejorDiferencia = Integer.MAX_VALUE;
+
+        for (String pregunta : preguntas) {
+            int coincidencias = contarCoincidencias(candidatos, pregunta);
+            int diferencia = Math.abs(candidatos.size() - (2 * coincidencias));
+            if (diferencia < mejorDiferencia) {
+                mejorDiferencia = diferencia;
+                mejorPregunta = pregunta;
+            }
+        }
+
+        return mejorPregunta;
+    }
+
+    private int contarCoincidencias(List<Personaje> candidatos, String pregunta) {
+        int coincidencias = 0;
+        for (Personaje candidato : candidatos) {
+            if (coincideConPregunta(candidato, pregunta)) {
+                coincidencias++;
+            }
+        }
+        return coincidencias;
+    }
+
+    private boolean coincideConPregunta(Personaje personaje, String pregunta) {
+        String[] partes = pregunta.split("=");
+        if (partes.length != 2) {
+            return false;
+        }
+
+        String clave = partes[0];
+        String valor = partes[1];
+        switch (clave) {
+            case "GENERO":
+                return personaje.getGenero().equalsIgnoreCase(valor);
+            case "CALVICIE":
+                return (valor.equalsIgnoreCase("SI") && personaje.isCalvicie())
+                        || (valor.equalsIgnoreCase("NO") && !personaje.isCalvicie());
+            case "LENTES":
+                return (valor.equalsIgnoreCase("SI") && personaje.isLentes())
+                        || (valor.equalsIgnoreCase("NO") && !personaje.isLentes());
+            case "PELO":
+                return personaje.getColorPelo().equalsIgnoreCase(valor);
+            default:
+                return false;
+        }
     }
 
     private void aplicarFiltroHumano(Scanner scanner, List<Personaje> candidatosMaquina, List<String> historialPreguntas) {
@@ -286,14 +336,30 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         int id = scanner.nextInt();
         scanner.nextLine();
 
-        for (Personaje personaje : personajesOrdenados) {
-            if (personaje.getId() == id) {
-                return personaje;
-            }
+        Personaje personajeEncontrado = buscarPorId(personajesOrdenados, id, 0, personajesOrdenados.size() - 1);
+        if (personajeEncontrado != null) {
+            return personajeEncontrado;
         }
 
         System.out.println("ID invalido. Se elige un personaje aleatorio.");
         return personajesOrdenados.get(random.nextInt(personajesOrdenados.size()));
+    }
+
+    private Personaje buscarPorId(List<Personaje> personajes, int id, int inicio, int fin) {
+        if (inicio > fin) {
+            return null;
+        }
+
+        int medio = inicio + (fin - inicio) / 2;
+        Personaje personajeMedio = personajes.get(medio);
+        if (personajeMedio.getId() == id) {
+            return personajeMedio;
+        }
+
+        if (id < personajeMedio.getId()) {
+            return buscarPorId(personajes, id, inicio, medio - 1);
+        }
+        return buscarPorId(personajes, id, medio + 1, fin);
     }
 
     private Personaje elegirOtroPersonajeDistinto(Personaje... excluidos) {
@@ -342,7 +408,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
             System.out.println();
             System.out.println("--- Turno " + turno + " ---");
 
-            String pregunta1 = elegirPreguntaMaquina(1, new ArrayList<>());
+            String pregunta1 = elegirPreguntaMaquina(1, candidatosM2, historialPreguntasMaquina1);
             historialPreguntasMaquina1.add(pregunta1);
             System.out.println("Maquina 1 pregunta: " + pregunta1);
             aplicarFiltroCandidatos(candidatosM2, pregunta1);
@@ -353,7 +419,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
                 return;
             }
 
-            String pregunta2 = elegirPreguntaMaquina(2, new ArrayList<>(historialPreguntasMaquina1));
+            String pregunta2 = elegirPreguntaMaquina(2, candidatosM1, historialPreguntasMaquina1);
             System.out.println("Maquina 2 conoce las preguntas previas de la maquina 1: " + historialPreguntasMaquina1);
             System.out.println("Maquina 2 pregunta: " + pregunta2);
             aplicarFiltroCandidatos(candidatosM1, pregunta2);
