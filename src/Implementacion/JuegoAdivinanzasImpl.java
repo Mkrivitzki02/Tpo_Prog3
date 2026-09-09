@@ -1,7 +1,6 @@
 package Implementacion;
 
 import Interfaz.JuegoAdivinanzas;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -15,6 +14,10 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
     private Personaje secretoMaquina1;
     private Personaje secretoMaquina2;
     private final List<String> historialPreguntasMaquina1 = new ArrayList<>();
+        private static final List<String> OPCIONES_PREGUNTAS = List.of(
+            "GENERO=FEMENINO", "GENERO=MASCULINO", "CALVICIE=SI",
+            "CALVICIE=NO", "LENTES=SI", "LENTES=NO", "PELO=NEGRO",
+            "PELO=COLORADO", "PELO=AMARILLO");
 
     public JuegoAdivinanzasImpl() {}
 
@@ -63,6 +66,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
     }
 
     private int leerEntero(Scanner scanner) {
+        // Repite la lectura hasta recibir un numero valido.
         while (true) {
             String entrada = scanner.nextLine().trim();
             try {
@@ -73,7 +77,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         }
     }
 
-    // APLICACIÓN DE DIVIDE Y CONQUISTA: MergeSort para ordenar por género y luego asignar IDs
+    // Divide y conquista: ordena y luego asigna IDs en el orden resultante.
     private void prepararLista() {
         List<Personaje> personajes = Personaje.crearPersonajes();
         this.personajesOrdenados = mergeSort(personajes);
@@ -97,18 +101,25 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         return combinar(izquierda, derecha);
     }
 
+    // Merge: une dos mitades ya ordenadas conservando su orden.
     private List<Personaje> combinar(List<Personaje> izquierda, List<Personaje> derecha) {
         List<Personaje> resultado = new ArrayList<>();
-        int i = 0, j = 0;
-        while (i < izquierda.size() && j < derecha.size()) {
-            if (izquierda.get(i).getGenero().compareTo(derecha.get(j).getGenero()) <= 0) {
-                resultado.add(izquierda.get(i++));
+        int indiceIzquierda = 0;
+        int indiceDerecha = 0;
+        while (indiceIzquierda < izquierda.size() && indiceDerecha < derecha.size()) {
+            if (izquierda.get(indiceIzquierda).getGenero()
+                    .compareTo(derecha.get(indiceDerecha).getGenero()) <= 0) {
+                resultado.add(izquierda.get(indiceIzquierda++));
             } else {
-                resultado.add(derecha.get(j++));
+                resultado.add(derecha.get(indiceDerecha++));
             }
         }
-        while (i < izquierda.size()) resultado.add(izquierda.get(i++));
-        while (j < derecha.size()) resultado.add(derecha.get(j++));
+        while (indiceIzquierda < izquierda.size()) {
+            resultado.add(izquierda.get(indiceIzquierda++));
+        }
+        while (indiceDerecha < derecha.size()) {
+            resultado.add(derecha.get(indiceDerecha++));
+        }
         return resultado;
     }
 
@@ -184,35 +195,23 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
 
         if (candidatosHumano.size() == 1 && candidatosHumano.get(0).getId() == this.secretoHumano.getId()) {
             return true;
-        } else {
-            double probabilidadAdivinar = tipoMaquina == 2 ? 0.85 : 0.55;
-            if (candidatosHumano.size() <= 2 && this.random.nextDouble() < probabilidadAdivinar) {
-                System.out.println("La maquina " + tipoMaquina + " intenta adivinar: " + this.secretoHumano.getNombre());
-                return true;
-            } else {
-                return false;
-            }
         }
+
+        double probabilidadAdivinar = tipoMaquina == 2 ? 0.85 : 0.55;
+        if (candidatosHumano.size() <= 2 && this.random.nextDouble() < probabilidadAdivinar) {
+            System.out.println("La maquina " + tipoMaquina + " intenta adivinar: " + this.secretoHumano.getNombre());
+            return true;
+        }
+        return false;
     }
 
-    // ESTRATEGIA GREEDY (Compatible con cualquier Java)
+    // Greedy: elige la pregunta que divide mejor a los candidatos restantes.
     private String elegirPreguntaGreedy(List<Personaje> candidatos, List<String> historialPreguntas) {
-        List<String> opciones = new ArrayList<>();
-        opciones.add("GENERO=FEMENINO");
-        opciones.add("GENERO=MASCULINO");
-        opciones.add("CALVICIE=SI");
-        opciones.add("CALVICIE=NO");
-        opciones.add("LENTES=SI");
-        opciones.add("LENTES=NO");
-        opciones.add("PELO=NEGRO");
-        opciones.add("PELO=COLORADO");
-        opciones.add("PELO=AMARILLO");
-
         String mejorPregunta = null;
         int menorDiferencia = Integer.MAX_VALUE;
         int mitad = candidatos.size() / 2;
 
-        for (String opcion : opciones) {
+        for (String opcion : OPCIONES_PREGUNTAS) {
             if (!historialPreguntas.contains(opcion)) {
                 int queCumplen = contarCoincidencias(candidatos, opcion);
                 int diferencia = Math.abs(queCumplen - mitad);
@@ -225,10 +224,10 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         }
 
         if (mejorPregunta == null) {
-            for (String opcion : opciones) {
+            for (String opcion : OPCIONES_PREGUNTAS) {
                 if (!historialPreguntas.contains(opcion)) return opcion;
             }
-            return opciones.get(0);
+            return OPCIONES_PREGUNTAS.get(0);
         }
 
         return mejorPregunta;
@@ -245,6 +244,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         return contador;
     }
 
+    // Centraliza la interpretación de las cuatro características del juego.
     private boolean coincideConPregunta(Personaje personaje, String pregunta) {
         String[] partes = pregunta.split("=");
         if (partes.length != 2) {
@@ -278,27 +278,10 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         System.out.println("4) Color de pelo");
         System.out.print("Elija filtro: ");
         int filtro = this.leerEntero(scanner);
-        String valor;
-        switch (filtro) {
-            case 1:
-                System.out.print("Ingrese genero (FEMENINO/MASCULINO): ");
-                valor = scanner.nextLine().toUpperCase();
-                break;
-            case 2:
-                System.out.print("Tiene calvicie? (SI/NO): ");
-                valor = scanner.nextLine().toUpperCase();
-                break;
-            case 3:
-                System.out.print("Usa lentes? (SI/NO): ");
-                valor = scanner.nextLine().toUpperCase();
-                break;
-            case 4:
-                System.out.print("Color de pelo? (NEGRO/COLORADO/AMARILLO): ");
-                valor = scanner.nextLine().toUpperCase();
-                break;
-            default:
-                System.out.println("Filtro invalido.");
-                return;
+        String valor = this.leerValorFiltro(scanner, filtro);
+        if (valor == null) {
+            System.out.println("Filtro invalido.");
+            return;
         }
 
         String pregunta = this.construirPregunta(filtro, valor);
@@ -307,6 +290,28 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         System.out.println("La maquina responde: " + (respuesta ? "SI" : "NO"));
         this.aplicarFiltroCandidatos(candidatosMaquina, pregunta, respuesta);
         System.out.println("La pregunta realizada fue: " + pregunta);
+    }
+
+    private String leerValorFiltro(Scanner scanner, int filtro) {
+        String mensaje;
+        switch (filtro) {
+            case 1:
+                mensaje = "Ingrese genero (FEMENINO/MASCULINO): ";
+                break;
+            case 2:
+                mensaje = "Tiene calvicie? (SI/NO): ";
+                break;
+            case 3:
+                mensaje = "Usa lentes? (SI/NO): ";
+                break;
+            case 4:
+                mensaje = "Color de pelo? (NEGRO/COLORADO/AMARILLO): ";
+                break;
+            default:
+                return null;
+        }
+        System.out.print(mensaje);
+        return scanner.nextLine().toUpperCase();
     }
 
     private String construirPregunta(int filtro, String valor) {
@@ -324,29 +329,21 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
     }
 
     private void aplicarFiltroCandidatos(List<Personaje> candidatos, String pregunta, boolean respuestaEsperada) {
+        // Conserva coincidencias o descartes segun la respuesta recibida.
         String[] partes = pregunta.split("=");
-        if (partes.length == 2) {
-            String clave = partes[0];
-            String valor = partes[1];
-            List<Personaje> filtrados = new ArrayList<>();
-
-            for (Personaje personaje : candidatos) {
-                boolean coincide = switch (clave) {
-                    case "GENERO" -> personaje.getGenero().equalsIgnoreCase(valor);
-                    case "CALVICIE" -> valor.equalsIgnoreCase("SI") && personaje.isCalvicie() || valor.equalsIgnoreCase("NO") && !personaje.isCalvicie();
-                    case "LENTES" -> valor.equalsIgnoreCase("SI") && personaje.isLentes() || valor.equalsIgnoreCase("NO") && !personaje.isLentes();
-                    case "PELO" -> personaje.getColorPelo().equalsIgnoreCase(valor);
-                    default -> true;
-                };
-
-                if (coincide == respuestaEsperada) {
-                    filtrados.add(personaje);
-                }
-            }
-            candidatos.clear();
-            candidatos.addAll(filtrados);
-            System.out.println("Se conservaron los candidatos compatibles con la respuesta.");
+        if (partes.length != 2) {
+            return;
         }
+
+        List<Personaje> filtrados = new ArrayList<>();
+        for (Personaje personaje : candidatos) {
+            if (this.coincideConPregunta(personaje, pregunta) == respuestaEsperada) {
+                filtrados.add(personaje);
+            }
+        }
+        candidatos.clear();
+        candidatos.addAll(filtrados);
+        System.out.println("Se conservaron los candidatos compatibles con la respuesta.");
     }
 
     private Personaje elegirPersonajeHumano(Scanner scanner) {
@@ -402,7 +399,8 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         System.out.println("Maquina 2 oculto: " + this.secretoMaquina2.getNombre());
 
         int turno = 1;
-        List<String> historialPreguntasMaquina2 = new ArrayList<>(); // Historial independiente para la M2
+        // Cada maquina evita repetir sus propias preguntas.
+        List<String> historialPreguntasMaquina2 = new ArrayList<>();
 
         do {
             System.out.println();
