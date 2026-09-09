@@ -14,7 +14,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
     private Personaje secretoMaquina1;
     private Personaje secretoMaquina2;
     private final List<String> historialPreguntasMaquina1 = new ArrayList<>();
-        private static final List<String> OPCIONES_PREGUNTAS = List.of(
+    private static final List<String> OPCIONES_PREGUNTAS = List.of(
             "GENERO=FEMENINO", "GENERO=MASCULINO", "CALVICIE=SI",
             "CALVICIE=NO", "LENTES=SI", "LENTES=NO", "PELO=NEGRO",
             "PELO=COLORADO", "PELO=AMARILLO");
@@ -209,12 +209,16 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
     private String elegirPreguntaGreedy(List<Personaje> candidatos, List<String> historialPreguntas) {
         String mejorPregunta = null;
         int menorDiferencia = Integer.MAX_VALUE;
-        int mitad = candidatos.size() / 2;
+        int cantidadCandidatos = candidatos.size();
 
         for (String opcion : OPCIONES_PREGUNTAS) {
             if (!historialPreguntas.contains(opcion)) {
                 int queCumplen = contarCoincidencias(candidatos, opcion);
-                int diferencia = Math.abs(queCumplen - mitad);
+                if (queCumplen == 0 || queCumplen == cantidadCandidatos) {
+                    continue;
+                }
+
+                int diferencia = Math.abs(queCumplen - (cantidadCandidatos - queCumplen));
 
                 if (diferencia < menorDiferencia) {
                     menorDiferencia = diferencia;
@@ -350,14 +354,31 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         System.out.print("Ingrese el ID del personaje elegido: ");
         int id = this.leerEntero(scanner);
 
-        for (Personaje personaje : this.personajesOrdenados) {
-            if (personaje.getId() == id) {
-                return personaje;
-            }
+        Personaje personaje = this.buscarPorId(this.personajesOrdenados, id, 0,
+                this.personajesOrdenados.size() - 1);
+        if (personaje != null) {
+            return personaje;
         }
 
         System.out.println("ID invalido. Se elige un personaje aleatorio.");
         return this.personajesOrdenados.get(this.random.nextInt(this.personajesOrdenados.size()));
+    }
+
+    // Divide y conquista: busca el ID en la lista ordenada sin recorrerla completa.
+    private Personaje buscarPorId(List<Personaje> personajes, int id, int inicio, int fin) {
+        if (inicio > fin) {
+            return null;
+        }
+
+        int medio = (inicio + fin) / 2;
+        Personaje personaje = personajes.get(medio);
+        if (personaje.getId() == id) {
+            return personaje;
+        }
+        if (id < personaje.getId()) {
+            return this.buscarPorId(personajes, id, inicio, medio - 1);
+        }
+        return this.buscarPorId(personajes, id, medio + 1, fin);
     }
 
     private Personaje elegirOtroPersonajeDistinto(Personaje... excluidos) {
