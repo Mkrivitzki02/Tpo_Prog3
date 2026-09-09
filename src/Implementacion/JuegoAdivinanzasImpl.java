@@ -108,7 +108,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
             scanner.nextLine();
 
             if (accion == 1) {
-                aplicarFiltroHumano(scanner, candidatosMaquina, historialPreguntasHumanas);
+                aplicarFiltroHumano(scanner, candidatosMaquina, historialPreguntasHumanas, secretoMaquinaActual);
                 System.out.println("Candidatos actuales: " + listarNombres(candidatosMaquina));
             } else if (accion == 2) {
                 System.out.print("Ingrese el nombre del personaje que cree que eligio la maquina: ");
@@ -235,7 +235,8 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         }
     }
 
-    private void aplicarFiltroHumano(Scanner scanner, List<Personaje> candidatosMaquina, List<String> historialPreguntas) {
+    private void aplicarFiltroHumano(Scanner scanner, List<Personaje> candidatosMaquina,
+            List<String> historialPreguntas, Personaje secretoMaquina) {
         System.out.println("Filtros aplicables:");
         System.out.println("1) Genero");
         System.out.println("2) Calvicie");
@@ -271,8 +272,10 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
 
         String pregunta = construirPregunta(filtro, valor);
         historialPreguntas.add(pregunta);
-        aplicarFiltroCandidatos(candidatosMaquina, pregunta);
-        System.out.println("La pista aplicada fue: " + pregunta);
+        boolean respuesta = coincideConPregunta(secretoMaquina, pregunta);
+        System.out.println("La maquina responde: " + (respuesta ? "SI" : "NO"));
+        aplicarFiltroCandidatos(candidatosMaquina, pregunta, respuesta);
+        System.out.println("La pregunta realizada fue: " + pregunta);
     }
 
     private String construirPregunta(int filtro, String valor) {
@@ -291,6 +294,10 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
     }
 
     private void aplicarFiltroCandidatos(List<Personaje> candidatos, String pregunta) {
+        aplicarFiltroCandidatos(candidatos, pregunta, true);
+    }
+
+    private void aplicarFiltroCandidatos(List<Personaje> candidatos, String pregunta, boolean respuestaEsperada) {
         String[] partes = pregunta.split("=");
         if (partes.length != 2) {
             return;
@@ -318,15 +325,14 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
                 default:
                     coincide = true;
             }
-            if (coincide) {
+            if (coincide == respuestaEsperada) {
                 filtrados.add(personaje);
             }
         }
 
         candidatos.clear();
         candidatos.addAll(filtrados);
-        String tipoFiltro = valor.equalsIgnoreCase("NO") ? "negativo" : "afirmativo";
-        System.out.println("El filtro fue " + tipoFiltro + ".");
+        System.out.println("Se conservaron los candidatos compatibles con la respuesta.");
     }
 
     private Personaje elegirPersonajeHumano(Scanner scanner) {
