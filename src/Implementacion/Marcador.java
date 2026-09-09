@@ -22,7 +22,11 @@ public class Marcador {
                 }
                 String[] datos = linea.split("=");
                 if (datos.length == 2) {
-                    puntuaciones.put(datos[0], Integer.parseInt(datos[1]));
+                    try {
+                        puntuaciones.put(datos[0], Integer.parseInt(datos[1]));
+                    } catch (NumberFormatException e) {
+                        System.out.println("Se ignora un registro invalido del marcador: " + linea);
+                    }
                 }
             }
         } catch (IOException e) {

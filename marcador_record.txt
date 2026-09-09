@@ -1,2 +1,4 @@
+matias=0
 Marcos=0
 Matias=1
+Juan=0

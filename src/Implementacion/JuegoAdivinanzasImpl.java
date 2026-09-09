@@ -33,8 +33,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
             System.out.println("4) Ver marcador");
             System.out.println("5) Salir");
             System.out.print("Ingrese opcion: ");
-            int opcion = scanner.nextInt();
-            scanner.nextLine();
+            int opcion = this.leerEntero(scanner);
             switch (opcion) {
                 case 1:
                     this.jugarHumanoVsMaquina(scanner, nombreUsuario, 1);
@@ -61,6 +60,17 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
     private String pedirNombre(Scanner scanner) {
         System.out.print("Ingrese su nombre: ");
         return scanner.nextLine();
+    }
+
+    private int leerEntero(Scanner scanner) {
+        while (true) {
+            String entrada = scanner.nextLine().trim();
+            try {
+                return Integer.parseInt(entrada);
+            } catch (NumberFormatException e) {
+                System.out.print("Ingrese un numero valido: ");
+            }
+        }
     }
 
     // APLICACIÓN DE DIVIDE Y CONQUISTA: MergeSort para ordenar por género y luego asignar IDs
@@ -115,19 +125,19 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         List<Personaje> candidatosHumano = new ArrayList<>(this.personajesOrdenados);
         List<Personaje> candidatosMaquina = new ArrayList<>(this.personajesOrdenados);
         List<String> historialPreguntasHumanas = new ArrayList<>();
+        List<String> historialPreguntasMaquina = new ArrayList<>();
 
         System.out.println("Tu personaje queda fijo y no puede cambiarse.");
         System.out.println("Se eligieron personajes secretos para la maquina.");
 
-        do {
+        while (true) {
             System.out.println();
             System.out.println("=== TURNO DEL JUGADOR ===");
             System.out.println("1) Hacer filtro");
             System.out.println("2) Hacer suposicion");
             System.out.println("3) Salir al menu");
             System.out.print("Seleccione: ");
-            int accion = scanner.nextInt();
-            scanner.nextLine();
+            int accion = this.leerEntero(scanner);
             if (accion == 1) {
                 this.aplicarFiltroHumano(scanner, candidatosMaquina, historialPreguntasHumanas, secretoMaquinaActual);
                 System.out.println("Candidatos actuales: " + this.listarNombres(candidatosMaquina));
@@ -143,22 +153,32 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
                 System.out.println("No es ese personaje. Sigue intentando.");
             } else if (accion == 3) {
                 return;
+            } else {
+                System.out.println("Accion invalida.");
+                continue;
             }
-        } while (!this.turnoMaquina(tipoMaquina, candidatosHumano, historialPreguntasHumanas));
+
+            if (this.turnoMaquina(tipoMaquina, candidatosHumano, historialPreguntasMaquina)) {
+                break;
+            }
+        }
 
         System.out.println("La maquina gano. El personaje oculto del humano era: " + this.secretoHumano.getNombre());
     }
 
-    private boolean turnoMaquina(int tipoMaquina, List<Personaje> candidatosHumano, List<String> historialPreguntasHumanas) {
-        String preguntaElegida = this.elegirPreguntaGreedy(candidatosHumano, historialPreguntasHumanas);
-        historialPreguntasHumanas.add(preguntaElegida);
+    private boolean turnoMaquina(int tipoMaquina, List<Personaje> candidatosHumano,
+            List<String> historialPreguntasMaquina) {
+        String preguntaElegida = this.elegirPreguntaGreedy(candidatosHumano, historialPreguntasMaquina);
+        historialPreguntasMaquina.add(preguntaElegida);
         if (tipoMaquina == 1) {
             this.historialPreguntasMaquina1.add(preguntaElegida);
         }
 
         System.out.println();
         System.out.println("La maquina " + tipoMaquina + " realiza la pregunta (Greedy): " + preguntaElegida);
-        this.aplicarFiltroCandidatos(candidatosHumano, preguntaElegida);
+        boolean respuesta = this.coincideConPregunta(this.secretoHumano, preguntaElegida);
+        System.out.println("El humano responde: " + (respuesta ? "SI" : "NO"));
+        this.aplicarFiltroCandidatos(candidatosHumano, preguntaElegida, respuesta);
         System.out.println("Quedan " + candidatosHumano.size() + " candidatos posibles.");
         System.out.println("Candidatos actuales de la maquina para tu personaje: " + this.listarNombres(candidatosHumano));
 
@@ -257,8 +277,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
         System.out.println("3) Lentes");
         System.out.println("4) Color de pelo");
         System.out.print("Elija filtro: ");
-        int filtro = scanner.nextInt();
-        scanner.nextLine();
+        int filtro = this.leerEntero(scanner);
         String valor;
         switch (filtro) {
             case 1:
@@ -332,8 +351,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
 
     private Personaje elegirPersonajeHumano(Scanner scanner) {
         System.out.print("Ingrese el ID del personaje elegido: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
+        int id = this.leerEntero(scanner);
 
         for (Personaje personaje : this.personajesOrdenados) {
             if (personaje.getId() == id) {
@@ -392,7 +410,9 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
             String pregunta1 = this.elegirPreguntaGreedy(candidatosM2, this.historialPreguntasMaquina1);
             this.historialPreguntasMaquina1.add(pregunta1);
             System.out.println("Maquina 1 pregunta (Greedy): " + pregunta1);
-            this.aplicarFiltroCandidatos(candidatosM2, pregunta1);
+            boolean respuesta1 = this.coincideConPregunta(this.secretoMaquina2, pregunta1);
+            System.out.println("Maquina 2 responde: " + (respuesta1 ? "SI" : "NO"));
+            this.aplicarFiltroCandidatos(candidatosM2, pregunta1, respuesta1);
             System.out.println("Candidatos restantes para M2: " + this.listarNombres(candidatosM2));
 
             if (candidatosM2.size() == 1 && candidatosM2.get(0).getId() == this.secretoMaquina2.getId()) {
@@ -403,7 +423,9 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
             String pregunta2 = this.elegirPreguntaGreedy(candidatosM1, historialPreguntasMaquina2);
             historialPreguntasMaquina2.add(pregunta2);
             System.out.println("Maquina 2 pregunta (Greedy): " + pregunta2);
-            this.aplicarFiltroCandidatos(candidatosM1, pregunta2);
+            boolean respuesta2 = this.coincideConPregunta(this.secretoMaquina1, pregunta2);
+            System.out.println("Maquina 1 responde: " + (respuesta2 ? "SI" : "NO"));
+            this.aplicarFiltroCandidatos(candidatosM1, pregunta2, respuesta2);
             System.out.println("Candidatos restantes para M1: " + this.listarNombres(candidatosM1));
 
             if (candidatosM1.size() == 1 && candidatosM1.get(0).getId() == this.secretoMaquina1.getId()) {
