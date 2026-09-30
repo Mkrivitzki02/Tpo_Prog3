@@ -20,12 +20,17 @@ public final class Ordenamiento {
     private Ordenamiento() {}
 
     public static <T> List<T> mergeSort(List<T> lista, Comparator<? super T> criterio) {
+        // Caso base: una lista de cero o un elemento ya esta ordenada.
         if (lista.size() <= 1) {
             return new ArrayList<>(lista);
         }
+
+        // Divide: separa la lista en dos mitades para resolverlas por separado.
         int medio = lista.size() / 2;
         List<T> izquierda = mergeSort(lista.subList(0, medio), criterio);
         List<T> derecha = mergeSort(lista.subList(medio, lista.size()), criterio);
+
+        // Combina las dos mitades despues de ordenarlas recursivamente.
         return combinar(izquierda, derecha, criterio);
     }
 
@@ -34,6 +39,7 @@ public final class Ordenamiento {
         int i = 0;
         int j = 0;
         while (i < izquierda.size() && j < derecha.size()) {
+            // Conquista/combina: toma el menor elemento de cada mitad ordenada.
             // "<=" mantiene la estabilidad: ante empate gana el elemento de la izquierda.
             if (criterio.compare(izquierda.get(i), derecha.get(j)) <= 0) {
                 resultado.add(izquierda.get(i++));

@@ -18,6 +18,7 @@ public class Tablero {
     private int proximoId = 1;
 
     public Tablero() {
+        // Divide y Conquista: ordena los personajes con MergeSort antes de asignarles IDs.
         List<Personaje> ordenados = Ordenamiento.mergeSort(
                 Personaje.crearPersonajes(), Comparator.comparing(Personaje::getGenero));
         for (Personaje personaje : ordenados) {
@@ -40,6 +41,7 @@ public class Tablero {
 
     /** Busqueda binaria recursiva (Divide y Conquista): O(log n). */
     public Personaje buscarPorId(int id) {
+        // La lista esta ordenada por ID, por eso se puede descartar una mitad en cada paso.
         return buscarPorId(id, 0, personajes.size() - 1);
     }
 
@@ -47,14 +49,19 @@ public class Tablero {
         if (inicio > fin) {
             return null;
         }
+
+        // Divide: revisa el elemento central del intervalo actual.
         int medio = (inicio + fin) / 2;
         Personaje personaje = personajes.get(medio);
         if (personaje.getId() == id) {
             return personaje;
         }
         if (id < personaje.getId()) {
+            // Conquista: el ID solo puede estar en la mitad izquierda.
             return buscarPorId(id, inicio, medio - 1);
         }
+
+        // Conquista: el ID solo puede estar en la mitad derecha.
         return buscarPorId(id, medio + 1, fin);
     }
 

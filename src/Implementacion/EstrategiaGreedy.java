@@ -22,20 +22,31 @@ public class EstrategiaGreedy implements EstrategiaPregunta {
         int menorDiferencia = Integer.MAX_VALUE;
         int total = candidatos.size();
 
+        // Greedy: evalua cada pregunta y toma la mejor decision para este turno.
         for (String pregunta : Preguntas.TODAS) {
+            // No vuelve a usar preguntas que ya fueron respondidas.
             if (preguntasHechas.contains(pregunta)) {
                 continue;
             }
+
+            // Cuenta cuantos candidatos quedarian para cada respuesta posible.
             int si = Preguntas.contarCoincidencias(candidatos, pregunta);
+            int no = total - si;
+
+            // Una pregunta que deja a todos en el mismo grupo no aporta informacion.
             if (si == 0 || si == total) {
-                continue; // no separa a nadie: no aporta informacion
+                continue;
             }
-            int diferencia = Math.abs(si - (total - si));
+
+            // La eleccion voraz busca dividir los candidatos lo mas parejo posible.
+            int diferencia = Math.abs(si - no);
             if (diferencia < menorDiferencia) {
                 menorDiferencia = diferencia;
                 mejorPregunta = pregunta;
             }
         }
+
+        // Devuelve la mejor opcion encontrada para que Maquina la use en su turno.
         return mejorPregunta;
     }
 

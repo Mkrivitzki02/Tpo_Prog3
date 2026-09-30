@@ -75,6 +75,7 @@ public class Marcador {
     /** Ranking de mayor a menor cantidad de victorias (reutiliza el MergeSort de Ordenamiento). */
     public List<Map.Entry<String, Integer>> obtenerRanking() {
         List<Map.Entry<String, Integer>> entradas = new ArrayList<>(cargarMarcador().entrySet());
+        // Divide y Conquista: ordena recursivamente las puntuaciones y luego las combina.
         return Ordenamiento.mergeSort(entradas, (a, b) -> Integer.compare(b.getValue(), a.getValue()));
     }
 
