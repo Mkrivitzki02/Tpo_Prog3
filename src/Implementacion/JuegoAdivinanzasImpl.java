@@ -16,7 +16,16 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
     @Override
     public void ejecutar() {
         scanner = new Scanner(System.in);
-        iniciarSesion();
+        try {
+            iniciarSesion();
+            menuPrincipal();
+        } catch (FinDeEntrada e) {
+            System.out.println();
+            System.out.println("Se cerro la entrada. Fin del juego.");
+        }
+    }
+
+    private void menuPrincipal() {
         boolean salir = false;
 
         while (!salir) {
@@ -41,7 +50,6 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
                 default -> System.out.println("Opcion invalida.");
             }
         }
-        scanner.close();
     }
 
     @Override
@@ -53,7 +61,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
 
     private void iniciarSesion() {
         System.out.print("Ingrese su nombre: ");
-        String nombre = scanner.nextLine();
+        String nombre = leerLinea();
         System.out.println();
         System.out.println("La maquina ordeno los 23 personajes por genero (MergeSort) y les asigno un ID autoincremental:");
         mostrarLista(motor.getPersonajes());
@@ -120,7 +128,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
                 }
             } else if (accion == 2) {
                 System.out.print("Nombre del personaje que crees que eligio la maquina: ");
-                String nombre = scanner.nextLine();
+                String nombre = leerLinea();
                 try {
                     if (motor.arriesgarHumano(nombre)) {
                         System.out.println("GANASTE. Adivinaste el personaje de " + rival.getNombre() + ".");
@@ -202,7 +210,7 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
             System.out.println("  Candidatos de Maquina 2 (" + m2.getCandidatos().size() + "): " + nombres(m2.getCandidatos()));
             if (pasoAPaso && !motor.isTerminada()) {
                 System.out.print("[Enter para el siguiente turno]");
-                scanner.nextLine();
+                leerLinea();
             }
         }
         System.out.println();
@@ -211,9 +219,21 @@ public class JuegoAdivinanzasImpl implements JuegoAdivinanzas {
 
     // ===================== Utilidades =====================
 
+    /** Se lanza cuando la entrada estandar se termina (por ejemplo Ctrl+D o un archivo redirigido). */
+    private static class FinDeEntrada extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+    }
+
+    private String leerLinea() {
+        if (!scanner.hasNextLine()) {
+            throw new FinDeEntrada();
+        }
+        return scanner.nextLine();
+    }
+
     private int leerEntero() {
         while (true) {
-            String entrada = scanner.nextLine().trim();
+            String entrada = leerLinea().trim();
             try {
                 return Integer.parseInt(entrada);
             } catch (NumberFormatException e) {

@@ -14,4 +14,11 @@ java -cp bin App            # interfaz gráfica
 java -cp bin App --console  # consola
 ```
 
+Pruebas automatizadas:
+
+```bash
+javac -d bin $(find src test -name "*.java")
+java -cp bin Implementacion.PruebasJuego
+```
+
 En IntelliJ / VS Code: ejecutar `App` (sin argumentos abre la GUI).

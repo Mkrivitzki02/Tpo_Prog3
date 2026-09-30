@@ -26,13 +26,17 @@ public class Marcador {
                 if (linea.trim().isEmpty()) {
                     continue;
                 }
-                String[] datos = linea.split("=");
-                if (datos.length == 2) {
-                    try {
-                        puntuaciones.put(datos[0].trim(), Integer.parseInt(datos[1].trim()));
-                    } catch (NumberFormatException e) {
-                        System.out.println("Se ignora un registro invalido del marcador: " + linea);
-                    }
+                // Se separa por el ULTIMO "=" para admitir nombres que contengan "=".
+                int separador = linea.lastIndexOf('=');
+                if (separador <= 0) {
+                    System.out.println("Se ignora un registro invalido del marcador: " + linea);
+                    continue;
+                }
+                try {
+                    int victorias = Integer.parseInt(linea.substring(separador + 1).trim());
+                    puntuaciones.put(linea.substring(0, separador).trim(), victorias);
+                } catch (NumberFormatException e) {
+                    System.out.println("Se ignora un registro invalido del marcador: " + linea);
                 }
             }
         } catch (IOException e) {

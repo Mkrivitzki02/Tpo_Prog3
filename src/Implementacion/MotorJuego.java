@@ -122,8 +122,8 @@ public class MotorJuego {
         verificarTurnoHumano();
         Jugada jugada = rival.jugarTurno(humano);
         if (rival == maquina1 && !jugada.esSuposicion()) {
-            // Queda registrado para que la Maquina 2 lo aproveche en sus partidas.
-            preguntasDeMaquina1AlHumano.add(new RegistroPregunta(jugada.getPregunta(), jugada.getRespuesta()));
+            // Queda registrado (sin repetir) para que la Maquina 2 lo aproveche en sus partidas.
+            registrarConocimientoDeMaquina1(jugada.getPregunta(), jugada.getRespuesta());
         }
         if (jugada.esGanadora()) {
             terminada = true;
@@ -132,6 +132,15 @@ public class MotorJuego {
             turno++;
         }
         return jugada;
+    }
+
+    private void registrarConocimientoDeMaquina1(String pregunta, boolean respuesta) {
+        for (RegistroPregunta registro : preguntasDeMaquina1AlHumano) {
+            if (registro.getPregunta().equals(pregunta)) {
+                return; // el personaje del humano es fijo: la respuesta ya se conoce
+            }
+        }
+        preguntasDeMaquina1AlHumano.add(new RegistroPregunta(pregunta, respuesta));
     }
 
     private void verificarTurnoHumano() {

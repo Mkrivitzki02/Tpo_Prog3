@@ -203,6 +203,37 @@ El problema no tiene estructura de grafo ni una función de costo a acotar más 
 
 ## 8. Pruebas realizadas
 
+### 8.1 Pruebas automatizadas (`test/Implementacion/PruebasJuego.java`)
+
+Son 99 casos de prueba sin dependencias externas. Se ejecutan con:
+
+```bash
+javac -d bin $(find src test -name "*.java")
+java -cp bin Implementacion.PruebasJuego
+```
+
+Cubren estas áreas:
+
+| Área | Qué se verifica |
+|---|---|
+| MergeSort | Listas vacías, de un elemento, ordenadas, invertidas y con repetidos; estabilidad; que no modifica la entrada; 500 listas aleatorias contra `Collections.sort`. |
+| Tablero | 23 personajes con combinaciones y nombres únicos, IDs 1..23, orden por género, búsqueda binaria de los 23 IDs y de IDs inexistentes, búsqueda por nombre, elección al azar respetando los excluidos. |
+| Filtros | Cada característica de cada personaje, preguntas mal formadas, validación, que SÍ y NO formen una partición, identificación única con 4 filtros. |
+| Encapsulamiento | Ningún método público de `Jugador` devuelve el personaje; la `Maquina` nunca recibe un `Jugador`, solo un `Oponente`. |
+| Estrategias | Greedy elige siempre la división mínima (contra fuerza bruta en 2000 subconjuntos); la Aleatoria solo elige preguntas útiles y no repetidas. |
+| Máquinas | Encuentran a los 23 personajes en 6 turnos o menos; nunca descartan el personaje real; la M1 nunca falla una suposición; la M2 arriesga con 2; ventaja heredada; reacción al rival. |
+| Motor | Sesión y personaje fijo, validaciones del humano, fin de partida, estados inválidos, MvM, listas no modificables. |
+| Simulación | 20.000 partidas MvM y 5.000 partidas contra un humano que juega al azar. |
+| Marcador | Archivo inexistente, alta sin pisar victorias, suma de victorias, líneas inválidas, ranking, nombres con "=". |
+| Consola | Entradas inválidas, preguntas repetidas, abandono, cambio de jugador, fin de la entrada (EOF). |
+
+**Fallas que encontraron las pruebas y se corrigieron:**
+1. El conocimiento que la Máquina 1 acumula sobre el humano guardaba preguntas repetidas entre partidas. Tras 10 partidas había 47 registros en lugar de 9. Ahora cada pregunta se registra una sola vez.
+2. Un nombre con "=" (por ejemplo "Juan=Pablo") se guardaba pero no se volvía a leer, y el jugador perdía sus victorias. Ahora la línea se separa por el último "=".
+3. Si la entrada de la consola se cortaba (Ctrl+D o un archivo redirigido), el programa terminaba con `NoSuchElementException`. Ahora termina ordenadamente.
+
+### 8.2 Otras verificaciones
+
 - Se compiló con `javac -Xlint:all`, sin errores.
 - **Verificación del tablero:**
   - 23 personajes con 23 combinaciones únicas.
