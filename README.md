@@ -1,18 +1,17 @@
-## Getting Started
+# TPO Programación III — Juego de Adivinanzas ("¿Quién es Quién?")
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+Juego en Java con 23 personajes y tres modos: Humano vs Máquina 1, Humano vs Máquina 2 y Máquina vs Máquina.
+Aplica **Divide y Conquista** (MergeSort y búsqueda binaria) y **Greedy** (elección de preguntas).
 
-## Folder Structure
+La documentación completa (algoritmos, patrones, decisiones de diseño y algoritmos no aplicados) está en
+[DOCUMENTACION.md](DOCUMENTACION.md).
 
-The workspace contains two folders by default, where:
+## Ejecutar
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+```bash
+javac -d bin $(find src -name "*.java")
+java -cp bin App            # interfaz gráfica
+java -cp bin App --console  # consola
+```
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+En IntelliJ / VS Code: ejecutar `App` (sin argumentos abre la GUI).

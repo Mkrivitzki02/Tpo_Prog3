@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Personaje {
+    // El ID no se declara a mano: lo asigna el Tablero (autoincremental) al agregar el personaje.
     private int id;
-    private String nombre;
-    private String genero;
-    private boolean calvicie;
-    private boolean lentes;
-    private String colorPelo;
+    private final String nombre;
+    private final String genero;
+    private final boolean calvicie;
+    private final boolean lentes;
+    private final String colorPelo;
 
-    public Personaje(int id, String nombre, String genero, boolean calvicie, boolean lentes, String colorPelo) {
-        this.id = id;
+    public Personaje(String nombre, String genero, boolean calvicie, boolean lentes, String colorPelo) {
         this.nombre = nombre;
         this.genero = genero;
         this.calvicie = calvicie;
@@ -20,34 +20,47 @@ public class Personaje {
         this.colorPelo = colorPelo;
     }
 
+    /**
+     * Carga los 23 personajes, agrupados unicamente por genero.
+     * Con 4 caracteristicas (2 generos x 2 calvicie x 2 lentes x 3 colores) hay 24 combinaciones
+     * posibles: cada personaje usa una distinta, asi siempre se lo puede identificar con filtros.
+     */
     public static List<Personaje> crearPersonajes() {
         List<Personaje> personajes = new ArrayList<>();
 
-        personajes.add(new Personaje(1, "Ana", "FEMENINO", false, true, "NEGRO"));
-        personajes.add(new Personaje(2, "Belen", "FEMENINO", false, false, "COLORADO"));
-        personajes.add(new Personaje(3, "Cecilia", "FEMENINO", true, true, "AMARILLO"));
-        personajes.add(new Personaje(4, "Diana", "FEMENINO", false, false, "NEGRO"));
-        personajes.add(new Personaje(5, "Eva", "FEMENINO", false, true, "COLORADO"));
-        personajes.add(new Personaje(6, "Florencia", "FEMENINO", false, false, "AMARILLO"));
-        personajes.add(new Personaje(7, "Gala", "FEMENINO", true, false, "NEGRO"));
-        personajes.add(new Personaje(8, "Hilda", "FEMENINO", false, true, "COLORADO"));
-        personajes.add(new Personaje(9, "Iris", "FEMENINO", false, false, "AMARILLO"));
-        personajes.add(new Personaje(10, "Julia", "FEMENINO", true, true, "NEGRO"));
-        personajes.add(new Personaje(11, "Karina", "FEMENINO", false, false, "COLORADO"));
-        personajes.add(new Personaje(12, "Lucas", "MASCULINO", false, true, "NEGRO"));
-        personajes.add(new Personaje(13, "Mateo", "MASCULINO", true, false, "COLORADO"));
-        personajes.add(new Personaje(14, "Nicolas", "MASCULINO", false, true, "AMARILLO"));
-        personajes.add(new Personaje(15, "Oscar", "MASCULINO", true, false, "NEGRO"));
-        personajes.add(new Personaje(16, "Pablo", "MASCULINO", false, false, "COLORADO"));
-        personajes.add(new Personaje(17, "Quintin", "MASCULINO", false, true, "NEGRO"));
-        personajes.add(new Personaje(18, "Ramon", "MASCULINO", true, false, "AMARILLO"));
-        personajes.add(new Personaje(19, "Sergio", "MASCULINO", false, false, "COLORADO"));
-        personajes.add(new Personaje(20, "Tomas", "MASCULINO", true, true, "NEGRO"));
-        personajes.add(new Personaje(21, "Ulises", "MASCULINO", false, false, "AMARILLO"));
-        personajes.add(new Personaje(22, "Victor", "MASCULINO", false, true, "COLORADO"));
-        personajes.add(new Personaje(23, "Walter", "MASCULINO", true, false, "NEGRO"));
+        // Personajes Femeninos (11 combinaciones unicas)
+        personajes.add(new Personaje("Ana", "FEMENINO", false, true, "NEGRO"));
+        personajes.add(new Personaje("Belen", "FEMENINO", false, false, "COLORADO"));
+        personajes.add(new Personaje("Cecilia", "FEMENINO", true, true, "AMARILLO"));
+        personajes.add(new Personaje("Diana", "FEMENINO", false, false, "NEGRO"));
+        personajes.add(new Personaje("Eva", "FEMENINO", false, true, "COLORADO"));
+        personajes.add(new Personaje("Florencia", "FEMENINO", false, false, "AMARILLO"));
+        personajes.add(new Personaje("Gala", "FEMENINO", true, false, "NEGRO"));
+        personajes.add(new Personaje("Hilda", "FEMENINO", true, false, "COLORADO"));
+        personajes.add(new Personaje("Iris", "FEMENINO", false, true, "AMARILLO"));
+        personajes.add(new Personaje("Julia", "FEMENINO", true, true, "NEGRO"));
+        personajes.add(new Personaje("Karina", "FEMENINO", true, true, "COLORADO"));
+
+        // Personajes Masculinos (12 combinaciones unicas)
+        personajes.add(new Personaje("Lucas", "MASCULINO", false, true, "NEGRO"));
+        personajes.add(new Personaje("Mateo", "MASCULINO", true, false, "COLORADO"));
+        personajes.add(new Personaje("Nicolas", "MASCULINO", false, true, "AMARILLO"));
+        personajes.add(new Personaje("Oscar", "MASCULINO", true, false, "NEGRO"));
+        personajes.add(new Personaje("Pablo", "MASCULINO", false, false, "COLORADO"));
+        personajes.add(new Personaje("Quintin", "MASCULINO", false, false, "NEGRO"));
+        personajes.add(new Personaje("Ramon", "MASCULINO", true, false, "AMARILLO"));
+        personajes.add(new Personaje("Sergio", "MASCULINO", true, true, "COLORADO"));
+        personajes.add(new Personaje("Tomas", "MASCULINO", true, true, "NEGRO"));
+        personajes.add(new Personaje("Ulises", "MASCULINO", false, false, "AMARILLO"));
+        personajes.add(new Personaje("Victor", "MASCULINO", false, true, "COLORADO"));
+        personajes.add(new Personaje("Walter", "MASCULINO", true, true, "AMARILLO"));
 
         return personajes;
+    }
+
+    /** Solo el Tablero asigna IDs (visibilidad de paquete). */
+    void asignarId(int id) {
+        this.id = id;
     }
 
     public int getId() {
@@ -74,11 +87,14 @@ public class Personaje {
         return colorPelo;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public String descripcion() {
+        return nombre + " (" + genero + " | calvo: " + (calvicie ? "SI" : "NO")
+                + " | lentes: " + (lentes ? "SI" : "NO") + " | pelo: " + colorPelo + ")";
     }
 
+    @Override
     public String toString() {
-        return "[id=" + id + ", nombre=" + nombre + ", genero=" + genero + ", calvicie=" + calvicie + ", lentes=" + lentes + ", pelo=" + colorPelo + "]";
+        return "[id=" + id + ", nombre=" + nombre + ", genero=" + genero + ", calvicie=" + calvicie
+                + ", lentes=" + lentes + ", pelo=" + colorPelo + "]";
     }
 }

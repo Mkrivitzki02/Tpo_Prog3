@@ -5,9 +5,15 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+/**
+ * Marcador record persistido en un archivo de texto con formato "nombre=victorias".
+ * Se lee completo al consultarlo y se reescribe completo al registrar una victoria.
+ */
 public class Marcador {
     private static final String ARCHIVO = "marcador_record.txt";
 
@@ -23,7 +29,7 @@ public class Marcador {
                 String[] datos = linea.split("=");
                 if (datos.length == 2) {
                     try {
-                        puntuaciones.put(datos[0], Integer.parseInt(datos[1]));
+                        puntuaciones.put(datos[0].trim(), Integer.parseInt(datos[1].trim()));
                     } catch (NumberFormatException e) {
                         System.out.println("Se ignora un registro invalido del marcador: " + linea);
                     }
@@ -62,17 +68,29 @@ public class Marcador {
         }
     }
 
-    public void mostrarMarcador() {
-        Map<String, Integer> marcador = cargarMarcador();
-        if (marcador.isEmpty()) {
-            System.out.println("Todavia no hay registros en el marcador.");
-            return;
-        }
+    /** Ranking de mayor a menor cantidad de victorias (reutiliza el MergeSort de Ordenamiento). */
+    public List<Map.Entry<String, Integer>> obtenerRanking() {
+        List<Map.Entry<String, Integer>> entradas = new ArrayList<>(cargarMarcador().entrySet());
+        return Ordenamiento.mergeSort(entradas, (a, b) -> Integer.compare(b.getValue(), a.getValue()));
+    }
 
-        System.out.println("=== MARCADOR RECORD ===");
-        for (Map.Entry<String, Integer> entrada : marcador.entrySet()) {
-            System.out.println(entrada.getKey() + " -> " + entrada.getValue() + " partidas ganadas");
+    public String textoRanking() {
+        List<Map.Entry<String, Integer>> ranking = obtenerRanking();
+        if (ranking.isEmpty()) {
+            return "Todavia no hay registros en el marcador.";
         }
+        StringBuilder sb = new StringBuilder();
+        int posicion = 1;
+        for (Map.Entry<String, Integer> entrada : ranking) {
+            sb.append(posicion++).append(". ").append(entrada.getKey()).append(" -> ")
+                    .append(entrada.getValue()).append(" partida(s) ganada(s)\n");
+        }
+        return sb.toString();
+    }
+
+    public void mostrarMarcador() {
+        System.out.println("=== MARCADOR RECORD ===");
+        System.out.print(textoRanking());
         System.out.println("=======================");
     }
 }
